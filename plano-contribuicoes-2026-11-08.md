@@ -17,6 +17,12 @@ Para cada issue, siga esta ordem e entregue o resultado ao Dav numa resposta:
 7. **Código de correção proposto, para o Dav implementar à mão:** arquivo por arquivo, com o trecho atual e o que entra no lugar (ou o ponto exato de inserção), os imports e os testes, incluindo o de "nada muda", mais os comandos de validação. Modelo de formato: a seção "Tarefa C → Implementação (aplicar à mão)".
 8. **Não alterar nada sem autorização explícita do Dav.** Está liberado, porque é investigação: ler código, histórico, issues e PRs, e rodar build ou testes cuja saída fique em diretórios ignorados pelo git (`target/`, `build/`), temporários ou de cache. Editar ou criar qualquer outro arquivo (inclusive este plano), criar branch, commitar, fazer push, comentar em issue e abrir ou atualizar PR só com autorização do Dav para aquela ação específica. Uma autorização não vale para a próxima ação.
 
+**Este arquivo (branch `planos`):**
+- Este plano existe **só no fork**: versionado na branch `planos` do `origin` (fork `DavJaveiro/rewrite-spring`) e ignorado localmente via `.git/info/exclude` (padrão `plano-contribuicoes-*.md`) — não aparece no `git status`, em commits nem em PRs.
+- **Nunca criar branch de contribuição a partir de `planos`** — sempre a partir de `main` atualizado com `upstream/main`. Branches filhas de `planos` carregam o commit deste arquivo, que vazaria no diff do PR para o upstream.
+- Para editar e sincronizar este plano: `git switch planos` → editar → `git commit -am "..." && git push` → `git switch -`. **Atenção:** o switch para `planos` sobrescreve a cópia local ignorada — commitar edições antes; e, ao voltar para `main`, o arquivo some da pasta (é tracked só em `planos`). Para trazê-lo de volta sem sair de `main`: `git restore --source=planos -- plano-contribuicoes-2026-11-08.md`.
+- Em outra máquina (uma vez): adicionar `plano-contribuicoes-*.md` ao `.git/info/exclude`, depois `git fetch origin` e `git restore --source=origin/planos -- plano-contribuicoes-2026-11-08.md`.
+
 **Regras de cada projeto** (verificado em 08/11/2026):
 - **`rewrite-spring`:** tem `AGENTS.md` na raiz (o `CLAUDE.md` só faz `@AGENTS.md`). Ele pede autorrevisão com a skill `review-recipe-pr` (`.claude/skills/review-recipe-pr/SKILL.md`) antes de abrir o PR, com as respostas da seção 1 ("Is this the right change?") na descrição, e PRs pequenos: um passo de migração de um padrão comum, com testes de antes e depois. A skill compara com `origin/main`, mas neste clone `origin` é o fork (`DavJaveiro/rewrite-spring`) e `upstream` é o `openrewrite/rewrite-spring`: use `upstream/main`.
 
@@ -323,5 +329,6 @@ Cada passo diz quem o executa, conforme as "Regras de contribuição": a IA anal
 ## Não fazer (nas quatro tarefas)
 - Não alterar nada sem autorização explícita do Dav: arquivos (inclusive este plano), branches, commits, push, comentários e PRs. Ver "Regras de contribuição".
 - Não reformatar arquivos inteiros, não atualizar dependências fora do escopo da tarefa e não "aproveitar" para corrigir outras coisas.
+- Não criar branches de contribuição a partir de `planos` — sempre a partir de `main` (ver "Este arquivo (branch `planos`)" nas Regras de contribuição).
 - Não abrir PR antes de comentar na issue. Nas tarefas A, B e C o comentário já foi feito; na D, o Dav comenta `I'd like to take B3` antes.
 - Não inventar APIs. Se não tiver certeza de um método (`getOutputPath()`, API do `GradleProject`), procure no código-fonte da dependência antes de usar.
