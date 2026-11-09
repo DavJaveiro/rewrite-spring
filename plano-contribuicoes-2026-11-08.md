@@ -16,6 +16,10 @@ Para cada issue, siga esta ordem e entregue o resultado ao Dav numa resposta:
 6. **Como resolver:** a abordagem, as alternativas consideradas e por que a escolhida é a menor correção que resolve o problema.
 7. **Código de correção proposto, para o Dav implementar à mão:** arquivo por arquivo, com o trecho atual e o que entra no lugar (ou o ponto exato de inserção), os imports e os testes, incluindo o de "nada muda", mais os comandos de validação. Modelo de formato: a seção "Tarefa C → Implementação (aplicar à mão)".
 8. **Não alterar nada sem autorização explícita do Dav.** Está liberado, porque é investigação: ler código, histórico, issues e PRs, e rodar build ou testes cuja saída fique em diretórios ignorados pelo git (`target/`, `build/`), temporários ou de cache. Editar ou criar qualquer outro arquivo (inclusive este plano), criar branch, commitar, fazer push, comentar em issue e abrir ou atualizar PR só com autorização do Dav para aquela ação específica. Uma autorização não vale para a próxima ação.
+9. **Proibido mencionar IA ou usar estilo artificial em commits, PRs e comentários:**
+   - **Zero atribuição de IA:** nunca incluir `Generated with...`, `Co-Authored-By:` de bots/agentes (Devin, Claude, Copilot, Cursor, Gemini, etc.) ou qualquer menção a IA, LLM, agente ou assistente em mensagens de commit, títulos/descrições de PR ou comentários em issues.
+   - **Sem travessões típicos de IA (`—` / `--`):** não usar travessões longos (`—`, *em-dash*) ou meia-risca (`–`, *en-dash*) para conectar frases nas mensagens de commit, descrições de PR ou comentários no código/GitHub. Prefira pontuação natural (vírgula, dois-pontos, ponto final ou parênteses).
+   - **Escrita humana e no padrão do repositório:** títulos e mensagens de commit e descrições de PR devem ser diretos, concisos, naturais e escritos como um desenvolvedor humano experiente escreve, seguindo o histórico real do repositório (`git log` do `upstream/main`).
 
 **Este arquivo (branch `planos`):**
 - Este plano existe **só no fork**: versionado na branch `planos` do `origin` (fork `DavJaveiro/rewrite-spring`) e ignorado localmente via `.git/info/exclude` (padrão `plano-contribuicoes-*.md`) — não aparece no `git status`, em commits nem em PRs.
@@ -328,6 +332,7 @@ Cada passo diz quem o executa, conforme as "Regras de contribuição": a IA anal
 
 ## Não fazer (nas quatro tarefas)
 - Não alterar nada sem autorização explícita do Dav: arquivos (inclusive este plano), branches, commits, push, comentários e PRs. Ver "Regras de contribuição".
+- Não mencionar IA/agente (`Generated with...`, `Co-Authored-By:` de bot) nem usar travessões típicos de IA (`—` / `–`) em commits, PRs ou comentários; escrever sempre em tom humano e direto, seguindo o padrão do histórico do repositório.
 - Não reformatar arquivos inteiros, não atualizar dependências fora do escopo da tarefa e não "aproveitar" para corrigir outras coisas.
 - Não criar branches de contribuição a partir de `planos` — sempre a partir de `main` (ver "Este arquivo (branch `planos`)" nas Regras de contribuição).
 - Não abrir PR antes de comentar na issue. Nas tarefas A, B e C o comentário já foi feito; na D, o Dav comenta `I'd like to take B3` antes.
