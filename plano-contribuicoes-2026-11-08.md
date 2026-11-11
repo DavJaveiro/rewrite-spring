@@ -34,50 +34,49 @@ Para cada issue, siga esta ordem e entregue o resultado ao Dav numa resposta:
 
 ## Visão geral
 
-|          | Tarefa B                                                                                 | Tarefa C                                                                                 | Tarefa D                                                                                              |
-| -------- | ---------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------- |
-| Projeto  | `openrewrite/rewrite-spring`                                                             | `openrewrite/rewrite-spring`                                                             | `openrewrite/rewrite-spring`                                                                          |
-| Issue    | [#1201 – item **B4**](https://github.com/openrewrite/rewrite-spring/issues/1201)         | [#1201 – item **B6**](https://github.com/openrewrite/rewrite-spring/issues/1201)         | [#1201 – item **B3**](https://github.com/openrewrite/rewrite-spring/issues/1201)                      |
-| Situação | Dav comentou "I'd like to take B4" em 08/11; PR #1270 draft; **aguardando CI e revisão** | Dav comentou "I'd like to take B6" em 08/11; PR #1271 draft; **aguardando CI e revisão** | Selecionada em 08/11; análise registrada, **nada implementado** (sem branch, sem comentário na issue) |
-| Esforço  | M (meio dia a 1 dia)                                                                     | M (meio dia)                                                                             | P–M (mesma forma do B4/B6)                                                                            |
-| Build    | Gradle (`./gradlew`)                                                                     | Gradle (`./gradlew`)                                                                     | Gradle (`./gradlew`)                                                                                  |
+|          | Tarefa B                                                                                                 | Tarefa C                                                                                                 | Tarefa D                                                                                                    |
+| -------- | -------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------- |
+| Projeto  | `openrewrite/rewrite-spring`                                                                             | `openrewrite/rewrite-spring`                                                                             | `openrewrite/rewrite-spring`                                                                                |
+| Issue    | [#1201 – item **B4**](https://github.com/openrewrite/rewrite-spring/issues/1201)                         | [#1201 – item **B6**](https://github.com/openrewrite/rewrite-spring/issues/1201)                         | [#1201 – item **B3**](https://github.com/openrewrite/rewrite-spring/issues/1201)                            |
+| Situação | PR [#1270](https://github.com/openrewrite/rewrite-spring/pull/1270) atualizado e testado (8/8); **pronto para revisão/merge** | PR [#1271](https://github.com/openrewrite/rewrite-spring/pull/1271) atualizado e testado (12/12); **pronto para revisão/merge** | PR [#1283](https://github.com/openrewrite/rewrite-spring/pull/1283) **APROVADO E MERGEADO** em 11/11/2026 (`3231afb3`) |
+| Esforço  | M (meio dia a 1 dia)                                                                                     | M (meio dia)                                                                                             | P–M (mesma forma do B4/B6)                                                                                  |
+| Build    | Gradle (`./gradlew`)                                                                                     | Gradle (`./gradlew`)                                                                                     | Gradle (`./gradlew`)                                                                                        |
 
-**Ordem:** A, B e C já foram feitas e aguardam terceiros (ver "Pendências externas"). A próxima é a **D**, que reaproveita o padrão de correção do B4/B6 em outra receita e é independente das outras (branch próprio a partir de `main`, sem arquivos em comum).
+**Status geral (atualizado em 11/11/2026):** A Tarefa D (**B3**, PR #1283) foi revisada, elogiada pelo mantenedor `timtebeek` (*"Thanks a lot! This indeed is the pattern we'd expect."*) e mergeada na `upstream/main` (`3231afb3`). As Tarefas B (**B4**, PR #1270) e C (**B6**, PR #1271) foram alinhadas com o mesmo padrão enxuto aprovado na B3, rebaseadas sobre `upstream/main`, validadas localmente (8/8 e 12/12 testes passando) e enviadas para o `origin`.
 
 ---
 
-## Progresso (executado em 08/11/2026)
+## Progresso (atualizado em 11/11/2026)
 
-### Tarefa B — implementado, PR draft aberto, aguardando CI
+### Tarefa B (B4) — alinhada ao padrão da B3, 8/8 testes passando, enviada na PR #1270
 
-**Ambiente:** `./gradlew` não resolve `org.openrewrite.build.recipe-library` (repo Code Genome exige credenciais) — cenário previsto; validação delegada ao CI do PR. Compilação validada localmente com `javac` + jars `rewrite-*:8.90.4` do Maven Central (receita e teste compilam limpos; lombok não roda no JDK 25 local, verificado via cópia delombokada).
+**Implementação** (branch `b4-logging-shutdown-hooks-per-project`, commit `9001d9c7` rebaseado sobre `upstream/main`):
+- `ScanningRecipe<AtomicBoolean>` -> `ScanningRecipe<Set<JavaProject>>` (um `JavaProject` por módulo aplicável).
+- Scanner: `TreeVisitor` genérico sobre `SourceFile` com curto-circuito `acc.contains(maybeJavaProject.get())`; com `MavenResolutionResult` aplica a regra original (packaging `jar` + dep compile `spring-boot:2.4.X`); com `GradleProject`, exige plugin `war` ausente (`"war".equals(plugin.getId()) || "org.gradle.war".equals(plugin.getId()) || plugin.getFullyQualifiedClassName().startsWith("org.gradle.api.plugins.WarPlugin")`) e dep resolvida `spring-boot:2.4.X` via `gradleProject.getConfiguration("compileClasspath")` e `configuration.findResolvedDependency("org.springframework.boot", "spring-boot")`.
+- Visitor: `Preconditions.check` verificando se o `JavaProject` do arquivo está no conjunto acumulado antes de aplicar `FindAnnotations`.
 
-**Implementação** (branch `b4-logging-shutdown-hooks-per-project`, commit `4d5a842`):
-- `ScanningRecipe<AtomicBoolean>` → `ScanningRecipe<Set<JavaProject>>` — um `JavaProject` por módulo aplicável (valores, não árvores — conforme #1202).
-- Scanner: `TreeVisitor` genérico sobre `SourceFile` — com `MavenResolutionResult` aplica a regra original (packaging `jar` + dep compile `spring-boot:2.4.X`); com `GradleProject`, exige plugin `war` ausente (`GradlePluginDescriptor.getId()`) e dep resolvida `spring-boot:2.4.X` em `compileClasspath`/`runtimeClasspath` (`getResolved()`, cobre transitivas — espelha `Scope.Compile`).
-- Visitor: `Preconditions.check` — check retorna `SearchResult.found` quando o `JavaProject` do arquivo está no set (marker do check é descartado, só conta o `!=`); depois `FindAnnotations` normal.
-- APIs confirmadas no código-fonte real (GradleProject, JavaProject, ModuleHasDependency Maven/Gradle, tooling-api Assertions, SourceSpec).
+**Testes:** **8/8 passando** (`LoggingShutdownHooksTest`: 5 testes existentes embrulhados em `mavenProject(...)` + 3 novos: `onlyApplicableModulesAreMarked`, `gradleJarProject` e `gradleWarProject` com `withToolingApi`).
 
-**Testes:** 5 existentes embrulhados em `mavenProject(...)` (necessário para o marcador `JavaProject`) + 3 novos: `onlyApplicableModulesAreMarked` (multimódulo — falha na implementação antiga), `gradleJarProject`, `gradleWarProject` (com `withToolingApi`). `found`/`notFound` viraram métodos-fábrica porque `SourceSpec.markers()` muta o objeto e acumularia `JavaProject`s conflitantes entre testes.
+**PR:** https://github.com/openrewrite/rewrite-spring/pull/1270
 
-**PR:** draft aberto — https://github.com/openrewrite/rewrite-spring/pull/1270 — com descrição respondendo a seção 1 da skill `review-recipe-pr` e "Part of #1201 (B4)". Check `cgp` está em `action_required`: CI da Moderne só roda após aprovação de alguém com write access (normal para forks). **Pós-merge:** comentar na #1201 com o link do PR.
+### Tarefa C (B6) — alinhada ao padrão da B3, 12/12 testes passando, enviada na PR #1271
 
-### Tarefa C — implementado, PR draft aberto, aguardando CI/mantenedor
+**Implementação** (branch `b6-gradle-support-search-recipes`, commits `aa1e8999` + `34088071` rebaseados sobre `upstream/main`):
+- `FindIntegrationSchedulerPool`: detecção por marcador (`MavenResolutionResult` -> `SPRING_BOOT_24` + `!model.findDependencies("org.springframework.integration", "spring-integration-core", Scope.Compile).isEmpty()`; `GradleProject` -> `gradleProject.getConfiguration("compileClasspath")` + `findResolvedDependency(...)` para `spring-boot` 2.4.X e `spring-integration-core`).
+- `spring-boot-25.yml`: `maven.search.FindDependency` -> `org.openrewrite.java.dependencies.FindDependency` (unificada; delega para Maven e Gradle mantendo a semântica).
+- **Testes:** **12/12 passando** (`FindIntegrationSchedulerPoolTest` 9/9 + `MessagesInTheDefaultErrorViewTest` 3/3).
 
-**Implementação** (branch `b6-gradle-support-search-recipes`, commits `af1aff9e` + `c37e90b3`, a partir de `main`):
-- `FindIntegrationSchedulerPool`: detecção por marcador (`MavenResolutionResult` → regra Maven; `GradleProject` → regra Gradle equivalente em `compileClasspath`/`runtimeClasspath` via `getResolved()`). O `Xml.Document` deixou de ser testado por tipo.
-- `spring-boot-25.yml`: `maven.search.FindDependency` → `org.openrewrite.java.dependencies.FindDependency` (unificada; delega para as duas específicas — semântica idêntica).
-- **Validação real local** (melhor que a do B4): testes rodados com `java` + JUnit console standalone e jars `rewrite-*:8.90.4` baixados do Maven Central + `gradle-tooling-api` do dist Gradle 9.9.0 do wrapper. Resultado: **12/12 verdes** — `FindIntegrationSchedulerPoolTest` 9/9 (incl. `gradleProject`/`gradleProjectWithoutSpringIntegration` com tooling API real, que baixou o Gradle 8.14.5 e resolveu deps do Central) e `MessagesInTheDefaultErrorViewTest` 3/3 (marcação `<!--~~>-->` no pom e `/*~~>*/` no build.gradle).
-- Jars/runtime em `C:\Users\sidio\AppData\Local\Temp\rewrite-libs` (66 arquivos em 08/11; manter para reusar na Tarefa D, depois podem ser apagados; nada entrou no repo).
+**PR:** https://github.com/openrewrite/rewrite-spring/pull/1271
 
-**PR:** draft aberto — https://github.com/openrewrite/rewrite-spring/pull/1271 — "Part of #1201 (B6)" + respostas da seção 1 da skill. Comentário `I'd like to take B6` postado na issue com o link do PR: https://github.com/openrewrite/rewrite-spring/issues/1201#issuecomment-6724439529. **Pós-merge:** avisar na #1201 (o mantenedor marca o item).
+### Tarefa D (B3) — concluída, aprovada e MERGEADA na `upstream/main` (#1283)
 
-### Tarefa D — selecionada (B3), análise registrada, ainda não implementada
-
-Em 08/11 o Dav escolheu o item **B3** (`AddLoggingPatternLevelForSleuth`) como próxima contribuição — mesmo defeito do B4 (`AtomicBoolean` global + scanner `MavenVisitor`), então a correção reaproveita o padrão já usado duas vezes. Detalhes na seção "Tarefa D" abaixo. **Nada de código foi alterado ainda** — nem branch, nem comentário na issue. Próximo passo: a análise completa no formato das "Regras de contribuição" (problema, diagrama de sequência, solução e código proposto), para o Dav implementar à mão.
+**Implementação** (branch `b3-sleuth-logging-pattern-per-project`, commit `6debc48a`, mergeado na `upstream/main` como `3231afb3` em 11/11/2026):
+- `AddLoggingPatternLevelForSleuth`: `ScanningRecipe<Set<JavaProject>>` usando `!model.findDependencies("org.springframework.cloud", "spring-cloud-starter-sleuth", Scope.Compile).isEmpty()` para Maven e `gradleProject.getConfiguration("compileClasspath")` + `findResolvedDependency("org.springframework.cloud", "spring-cloud-starter-sleuth")` para Gradle.
+- **Testes:** **5/5 passando** (`AddLoggingPatternLevelForSleuthTest`: 2 existentes + `onlyApplicableModulesAreUpdated`, `gradleProject`, `gradleProjectWithoutSleuth`).
+- **PR:** https://github.com/openrewrite/rewrite-spring/pull/1283 (aprovado e mergeado por `timtebeek`).
 
 ### Pendências externas
-- Aprovação CGP + CI verde + revisão nos PRs #1270 (B4) e #1271 (B6).
+- Marcar PRs #1270 (B4) e #1271 (B6) como "Ready for review" no GitHub e aguardar CI + merge pelo mantenedor.
 
 ## Tarefa B: rewrite-spring #1201, item B4 (`LoggingShutdownHooks`)
 
