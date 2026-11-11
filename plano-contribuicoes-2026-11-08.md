@@ -1,6 +1,6 @@
 # Plano de trabalho: contribuições open source (08/11/2026)
 
-> **Para o modelo de IA que receber este arquivo:** você vai ajudar o Dav, desenvolvedor Java/Spring Boot (backend, Maven, CI/CD), a fazer contribuições pequenas e independentes. **Antes de tudo, siga as "Regras de contribuição" logo abaixo: você não altera nada sem autorização do Dav e entrega análise, diagrama de sequência e código proposto para ele implementar à mão.** Depois, leia a seção da tarefa em que ele estiver trabalhando e **não amplie o escopo**: os mantenedores dos dois projetos preferem PRs pequenos e focados. Os fatos abaixo foram verificados em 08/11/2026. Confira no GitHub se algo mudou antes de começar.
+> **Para o modelo de IA que receber este arquivo:** você vai ajudar o Dav, desenvolvedor Java/Spring Boot (backend, Maven, CI/CD), a fazer contribuições pequenas e independentes. **Antes de tudo, siga as "Regras de contribuição" logo abaixo: você não altera nada sem autorização do Dav e entrega análise, diagrama de sequência e código proposto para ele implementar à mão.** Depois, leia a seção da tarefa em que ele estiver trabalhando e **não amplie o escopo**: os mantenedores dos dois projetos preferem PRs pequenos e focados. Os fatos abaixo foram verificados em 08/11/2026 e atualizados em 11/11/2026. Confira no GitHub se algo mudou antes de começar.
 
 ## Regras de contribuição (obrigatórias)
 
@@ -38,11 +38,11 @@ Para cada issue, siga esta ordem e entregue o resultado ao Dav numa resposta:
 | -------- | -------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------- |
 | Projeto  | `openrewrite/rewrite-spring`                                                                             | `openrewrite/rewrite-spring`                                                                             | `openrewrite/rewrite-spring`                                                                                |
 | Issue    | [#1201 – item **B4**](https://github.com/openrewrite/rewrite-spring/issues/1201)                         | [#1201 – item **B6**](https://github.com/openrewrite/rewrite-spring/issues/1201)                         | [#1201 – item **B3**](https://github.com/openrewrite/rewrite-spring/issues/1201)                            |
-| Situação | PR [#1270](https://github.com/openrewrite/rewrite-spring/pull/1270) atualizado e testado (8/8); **pronto para revisão/merge** | PR [#1271](https://github.com/openrewrite/rewrite-spring/pull/1271) atualizado e testado (12/12); **pronto para revisão/merge** | PR [#1283](https://github.com/openrewrite/rewrite-spring/pull/1283) **APROVADO E MERGEADO** em 11/11/2026 (`3231afb3`) |
+| Situação | PR [#1270](https://github.com/openrewrite/rewrite-spring/pull/1270) atualizado e testado (8/8); **ready for review, mas o `cgp` falhou por 503 no plugin `recipe-library`** | PR [#1271](https://github.com/openrewrite/rewrite-spring/pull/1271) atualizado e testado (12/12); **ready for review, `cgp` falhou pelo mesmo 503** | PR [#1283](https://github.com/openrewrite/rewrite-spring/pull/1283) **APROVADO E MERGEADO** em 11/11/2026 (`3231afb3`) |
 | Esforço  | M (meio dia a 1 dia)                                                                                     | M (meio dia)                                                                                             | P–M (mesma forma do B4/B6)                                                                                  |
 | Build    | Gradle (`./gradlew`)                                                                                     | Gradle (`./gradlew`)                                                                                     | Gradle (`./gradlew`)                                                                                        |
 
-**Status geral (atualizado em 11/11/2026):** A Tarefa D (**B3**, PR #1283) foi revisada, elogiada pelo mantenedor `timtebeek` (*"Thanks a lot! This indeed is the pattern we'd expect."*) e mergeada na `upstream/main` (`3231afb3`). As Tarefas B (**B4**, PR #1270) e C (**B6**, PR #1271) foram alinhadas com o mesmo padrão enxuto aprovado na B3, rebaseadas sobre `upstream/main`, validadas localmente (8/8 e 12/12 testes passando) e enviadas para o `origin`.
+**Status geral (atualizado em 11/11/2026):** A Tarefa D (**B3**, PR #1283) foi revisada, elogiada pelo mantenedor `timtebeek` (*"Thanks a lot! This indeed is the pattern we'd expect."*) e mergeada na `upstream/main` (`3231afb3`). As Tarefas B (**B4**, PR #1270) e C (**B6**, PR #1271) foram alinhadas com o mesmo padrão enxuto aprovado na B3, rebaseadas sobre `upstream/main`, validadas localmente (8/8 e 12/12 testes passando) e enviadas para o `origin`. O `main` local e o do fork foram sincronizados com a `upstream/main` em 11/11/2026 (`3231afb3`; a última tag é `v6.53.0`, em `9fd585b4`). As PRs #1270 e #1271 já estão como ready for review (não são mais draft), mas o check `cgp` falhou em 11/11/2026 às 19:24 UTC: 503 do repositório do CGP ao resolver o plugin `org.openrewrite.build.recipe-library:2.41.0`, e o build parou antes de compilar e rodar os testes, então o vermelho não indica falha dos testes; falta uma nova execução do `cgp` ou validação pelo mantenedor.
 
 ---
 
@@ -50,7 +50,7 @@ Para cada issue, siga esta ordem e entregue o resultado ao Dav numa resposta:
 
 ### Tarefa B (B4) — alinhada ao padrão da B3, 8/8 testes passando, enviada na PR #1270
 
-**Implementação** (branch `b4-logging-shutdown-hooks-per-project`, commit `9001d9c7` rebaseado sobre `upstream/main`):
+**Implementação** (branch `b4-logging-shutdown-hooks-per-project`, commit `9001d9c7` rebaseado sobre `upstream/main` (`3231afb3`)):
 - `ScanningRecipe<AtomicBoolean>` -> `ScanningRecipe<Set<JavaProject>>` (um `JavaProject` por módulo aplicável).
 - Scanner: `TreeVisitor` genérico sobre `SourceFile` com curto-circuito `acc.contains(maybeJavaProject.get())`; com `MavenResolutionResult` aplica a regra original (packaging `jar` + dep compile `spring-boot:2.4.X`); com `GradleProject`, exige plugin `war` ausente (`"war".equals(plugin.getId()) || "org.gradle.war".equals(plugin.getId()) || plugin.getFullyQualifiedClassName().startsWith("org.gradle.api.plugins.WarPlugin")`) e dep resolvida `spring-boot:2.4.X` via `gradleProject.getConfiguration("compileClasspath")` e `configuration.findResolvedDependency("org.springframework.boot", "spring-boot")`.
 - Visitor: `Preconditions.check` verificando se o `JavaProject` do arquivo está no conjunto acumulado antes de aplicar `FindAnnotations`.
@@ -61,7 +61,7 @@ Para cada issue, siga esta ordem e entregue o resultado ao Dav numa resposta:
 
 ### Tarefa C (B6) — alinhada ao padrão da B3, 12/12 testes passando, enviada na PR #1271
 
-**Implementação** (branch `b6-gradle-support-search-recipes`, commits `aa1e8999` + `34088071` rebaseados sobre `upstream/main`):
+**Implementação** (branch `b6-gradle-support-search-recipes`, commits `bc4c6fce` + `34088071` rebaseados sobre `upstream/main` (`3231afb3`)):
 - `FindIntegrationSchedulerPool`: detecção por marcador (`MavenResolutionResult` -> `SPRING_BOOT_24` + `!model.findDependencies("org.springframework.integration", "spring-integration-core", Scope.Compile).isEmpty()`; `GradleProject` -> `gradleProject.getConfiguration("compileClasspath")` + `findResolvedDependency(...)` para `spring-boot` 2.4.X e `spring-integration-core`).
 - `spring-boot-25.yml`: `maven.search.FindDependency` -> `org.openrewrite.java.dependencies.FindDependency` (unificada; delega para Maven e Gradle mantendo a semântica).
 - **Testes:** **12/12 passando** (`FindIntegrationSchedulerPoolTest` 9/9 + `MessagesInTheDefaultErrorViewTest` 3/3).
@@ -72,11 +72,11 @@ Para cada issue, siga esta ordem e entregue o resultado ao Dav numa resposta:
 
 **Implementação** (branch `b3-sleuth-logging-pattern-per-project`, commit `6debc48a`, mergeado na `upstream/main` como `3231afb3` em 11/11/2026):
 - `AddLoggingPatternLevelForSleuth`: `ScanningRecipe<Set<JavaProject>>` usando `!model.findDependencies("org.springframework.cloud", "spring-cloud-starter-sleuth", Scope.Compile).isEmpty()` para Maven e `gradleProject.getConfiguration("compileClasspath")` + `findResolvedDependency("org.springframework.cloud", "spring-cloud-starter-sleuth")` para Gradle.
-- **Testes:** **5/5 passando** (`AddLoggingPatternLevelForSleuthTest`: 2 existentes + `onlyApplicableModulesAreUpdated`, `gradleProject`, `gradleProjectWithoutSleuth`).
+- **Testes:** **5/5 passando** (`AddLoggingPatternLevelForSleuthTest`: `addLoggingPatternWhenUsingSleuth` e `doNotAddWhenNotUsingSleuth` existentes + `onlyAddToModuleUsingSleuth`, `gradleProjectUsingSleuth` e `gradleProjectNotUsingSleuth`).
 - **PR:** https://github.com/openrewrite/rewrite-spring/pull/1283 (aprovado e mergeado por `timtebeek`).
 
 ### Pendências externas
-- Marcar PRs #1270 (B4) e #1271 (B6) como "Ready for review" no GitHub e aguardar CI + merge pelo mantenedor.
+- PRs #1270 (B4) e #1271 (B6): ready for review; o `cgp` falhou por 503 na resolução do plugin `org.openrewrite.build.recipe-library:2.41.0` antes de compilar/testar. Aguardando nova execução do `cgp` (ou validação pelo mantenedor) e revisão/merge.
 
 ## Tarefa B: rewrite-spring #1201, item B4 (`LoggingShutdownHooks`)
 
@@ -102,7 +102,7 @@ Para cada issue, siga esta ordem e entregue o resultado ao Dav numa resposta:
 - O commit `8d28618`/#1202 ("Keep values, not trees or visitors, in scanning recipe accumulators") pede que o acumulador guarde **valores** (por exemplo, o `JavaProject` ou o id dele), nunca árvores ou visitors.
 
 ### Passos
-> Status em 08/11: passos 1 a 6 concluídos (PR #1270 draft). Falta o 7, depois do merge.
+> Status em 11/11: passos 1 a 6 concluídos (PR #1270 pronta para revisão, 8/8 testes locais). Falta o 7, depois do merge.
 
 1. **Ambiente:**
    ```bash
@@ -256,7 +256,7 @@ recipeList:
 - Os testes Maven existentes devem continuar verdes (detecção Maven inalterada).
 
 ### Passos
-> Status em 08/11: passos 1 a 6 concluídos (comentário na #1201 e PR #1271 draft). Falta o 7, depois do merge.
+> Status em 11/11: passos 1 a 6 concluídos (comentário na #1201 e PR #1271 pronta para revisão, 12/12 testes locais). Falta o 7, depois do merge.
 
 1. `git checkout main && git pull upstream main && git checkout -b b6-gradle-support-search-recipes` — **branch novo a partir de `main`**, não do branch do B4 (arquivos não se sobrepõem; manter PRs independentes).
 2. Comentar na #1201: `I'd like to take B6` (protocolo do checklist).
@@ -276,12 +276,12 @@ recipeList:
 ## Tarefa D: rewrite-spring #1201, item B3 (`AddLoggingPatternLevelForSleuth`)
 
 ### Contexto
-- Terceiro item da #1201 escolhido pelo Dav (B4 = PR #1270, B6 = PR #1271), ainda não reservado na issue. O B3 diz: *"per-project state and Gradle support"* — mesmo formato de defeito do B4.
-- Arquivos (verificados no branch `b6-gradle-support-search-recipes` = main + B6):
+- Terceiro item da #1201 escolhido pelo Dav (B4 = PR #1270, B6 = PR #1271). O Dav comentou `I'd like to take B3` na issue em 10/11/2026 e a correção foi mergeada em 11/11/2026 via PR #1283. O B3 diz: *"per-project state and Gradle support"*, mesmo formato de defeito do B4.
+- Arquivos (verificados em 08/11/2026, sobre a `main` de então):
   - Receita: `src/main/java/org/openrewrite/java/spring/cloud2022/AddLoggingPatternLevelForSleuth.java`
   - Teste: `src/test/java/org/openrewrite/java/spring/cloud2022/AddLoggingPatternLevelForSleuthTest.java`
   - Uso: `src/main/resources/META-INF/rewrite/spring-cloud-2022.yml:98`.
-- **Como a receita funciona hoje** (`:35-71`):
+- **Como a receita funcionava antes da correção** (`:35-71`, na `main` de 08/11):
   - `ScanningRecipe<AtomicBoolean>` — um booleano **global** (`:35,:44-45`).
   - O scanner é um `MavenVisitor` (`:49`): em qualquer `pom.xml` com `org.springframework.cloud:spring-cloud-starter-sleuth:X` em `Scope.Compile`, liga a flag (`:52-55`).
   - O visitor roda `Preconditions.check(acc.get(), new AddSpringProperty("logging.pattern.level", "%5p [${spring.application.name:},%X{traceId:-},%X{spanId:-}]", "...comment...", null).getVisitor())` (`:63-69`) — injeta a propriedade em `application.properties`/`application.yml`.
@@ -295,32 +295,28 @@ recipeList:
 - Regra Gradle espelhada: `GradleProject` → `getConfiguration("compileClasspath"|"runtimeClasspath")` → `getResolved()` (cobre transitivas, espelha `Scope.Compile`) com o mesmo matcher.
 - Nos testes atuais (`AddLoggingPatternLevelForSleuthTest`), os casos já vêm embrulhados em `mavenProject("project", pomXml(...), properties(...), yaml(...))` — o wrapper fornece o marcador `JavaProject` aos arquivos filhos, então os testes Maven existentes devem continuar verdes sem alteração.
 
-### Implementação (esboço — a IA detalha no código proposto, para o Dav aplicar à mão)
-- `ScanningRecipe<AtomicBoolean>` → `ScanningRecipe<Set<JavaProject>>` (ou acumulador pequeno com `Set<JavaProject>` — valores, não árvores, conforme #1202).
-- **Scanner:** `TreeVisitor` genérico sobre `SourceFile`, checando marcadores por arquivo (padrão do B6):
-  - `MavenResolutionResult` presente → regra Maven atual (Sleuth starter em `Scope.Compile`) → `javaProject` no set.
-  - senão, `GradleProject` presente → regra Gradle em `compileClasspath`/`runtimeClasspath` → `javaProject` no set.
-  - `contains(javaProject)` evita re-escanear dependências por arquivo.
-- **Visitor:** `Preconditions.check(visitor-que-retorna-SearchResult-quando-o-JavaProject-do-arquivo-∈-set, addSpringProperty.getVisitor())` — o `AddSpringProperty` em si não muda.
-- `displayName`/`description` intactos.
+### Implementação (como ficou, mergeada em `3231afb3`)
+- `ScanningRecipe<AtomicBoolean>` virou `ScanningRecipe<Set<JavaProject>>` com `HashSet`, guardando valores e não árvores (conforme #1202).
+- **Scanner:** `TreeVisitor<Tree, ExecutionContext>` que só considera `SourceFile`; lê o marcador `JavaProject` e faz curto-circuito quando o projeto já está no conjunto.
+  - Com `MavenResolutionResult`, usa `findDependencies("org.springframework.cloud", "spring-cloud-starter-sleuth", Scope.Compile)`.
+  - Com `GradleProject`, usa `getConfiguration("compileClasspath")` e `findResolvedDependency("org.springframework.cloud", "spring-cloud-starter-sleuth")`.
+- **Visitor:** `Preconditions.check` com um visitor que devolve `SearchResult.found(tree)` quando o `JavaProject` do arquivo está no conjunto; o `AddSpringProperty` em si não mudou.
+- `displayName`/`description` intactos, e nenhuma mudança em `spring-cloud-2022.yml`.
 
-### Testes
-- Manter `addLoggingPatternWhenUsingSleuth` e `doNotAddWhenNotUsingSleuth` verdes.
-- Novo **multimódulo Maven**: `mavenProject("sleuth-app", pom com sleuth + application.properties)` + `mavenProject("plain-app", pom sem sleuth + application.properties)` → só o primeiro recebe a propriedade. Hoje falha (flag global).
-- Novo **Gradle**: `buildGradle` com `implementation 'org.springframework.cloud:spring-cloud-starter-sleuth:3.1.x'` + `properties(...)` com `spec.beforeRecipe(withToolingApi())` → propriedade adicionada.
-- Novo **Gradle negativo**: `buildGradle` sem sleuth → sem alteração.
+### Testes (5/5 passando)
+- `addLoggingPatternWhenUsingSleuth` e `doNotAddWhenNotUsingSleuth` seguem verdes, agora embrulhados em `mavenProject(...)`.
+- `onlyAddToModuleUsingSleuth`: multimódulo Maven com `sleuth-app` e `plain-app`; só o primeiro recebe `logging.pattern.level`.
+- `gradleProjectUsingSleuth` e `gradleProjectNotUsingSleuth`: `buildGradle` com `spec.beforeRecipe(withToolingApi())`, com e sem `spring-cloud-starter-sleuth`.
 
-### Passos
-Cada passo diz quem o executa, conforme as "Regras de contribuição": a IA analisa e propõe; o Dav altera.
-
-1. **IA:** análise completa conforme as "Regras de contribuição": estado atual da #1201 e do `upstream/main`, `AGENTS.md`, skill `review-recipe-pr` (com o rascunho das respostas da seção 1), problema, diagrama de sequência, solução e código proposto (receita e testes).
-2. **Dav:** `git checkout main && git pull upstream main && git checkout -b b3-sleuth-logging-pattern-per-project` — branch novo a partir de `main` (não do branch do B4/B6).
-3. **Dav:** comentar na #1201: `I'd like to take B3` (protocolo do checklist).
-4. **Dav:** implementar à mão o código proposto, testes primeiro.
-5. **Validar** como no B6: `javac` + jars `rewrite-*:8.90.4` (já baixados em `%TEMP%\rewrite-libs`) e, se possível, rodar os testes com JUnit console standalone + `gradle-tooling-api` do dist Gradle — mesmo classpath montado para o B6. A saída fica fora do repo (pasta temporária), então a IA pode rodar (regra 8).
-6. **IA:** autorrevisão com a skill `review-recipe-pr` contra `upstream/main`, só leitura: lista os achados com a correção proposta, e o Dav aplica.
-7. **Dav:** PR draft — título sugerido: `AddLoggingPatternLevelForSleuth: per-project state and Gradle detection (B3 of #1201)`; `Part of #1201 (B3)` (não "Fixes") + respostas da seção 1 da skill.
-8. **Dav:** após o merge, comentar na #1201 com o link do PR (o mantenedor marca o item).
+### Passos (todos concluídos)
+1. Análise completa e código proposto: feitos.
+2. Branch `b3-sleuth-logging-pattern-per-project` criado a partir da `main`.
+3. Comentário `I'd like to take B3` na #1201 em 10/11/2026.
+4. Implementação à mão da receita e dos testes.
+5. Validação local (5/5).
+6. Autorrevisão com a skill `review-recipe-pr` contra `upstream/main`.
+7. PR #1283 aberta, revisada e mergeada por `timtebeek` como `3231afb3` em 11/11/2026.
+8. Comentário na #1201 avisando que o B3 foi resolvido em #1283: feito em 11/11/2026.
 
 ### Critério de pronto
 - Testes multimódulo + Gradle novos passam; testes antigos verdes.
@@ -334,5 +330,5 @@ Cada passo diz quem o executa, conforme as "Regras de contribuição": a IA anal
 - Não mencionar IA/agente (`Generated with...`, `Co-Authored-By:` de bot) nem usar travessões típicos de IA (`—` / `–`) em commits, PRs ou comentários; escrever sempre em tom humano e direto, seguindo o padrão do histórico do repositório.
 - Não reformatar arquivos inteiros, não atualizar dependências fora do escopo da tarefa e não "aproveitar" para corrigir outras coisas.
 - Não criar branches de contribuição a partir de `planos` — sempre a partir de `main` (ver "Este arquivo (branch `planos`)" nas Regras de contribuição).
-- Não abrir PR antes de comentar na issue. Nas tarefas A, B e C o comentário já foi feito; na D, o Dav comenta `I'd like to take B3` antes.
+- Não abrir PR antes de comentar na issue. Nas tarefas A, B, C e D o comentário já foi feito.
 - Não inventar APIs. Se não tiver certeza de um método (`getOutputPath()`, API do `GradleProject`), procure no código-fonte da dependência antes de usar.
